@@ -212,6 +212,7 @@ barConfigs.secondary = {
             ["SHAMAN"]      = nil, -- Through code
             ["EVOKER"]      = Enum.PowerType.Essence,
             ["DRUID"]       = nil, -- Through code
+            ["PRIEST"]      = nil, -- Through code
         }
 
         local specID = GetSpecialization()
@@ -244,6 +245,16 @@ barConfigs.secondary = {
             if form == 1 then -- Cat form
                 return Enum.PowerType.ComboPoints
             else
+                return nil
+            end
+        end
+
+        -- Priest: spec-based
+        if class == "PRIEST" then
+            local spec = GetSpecializationInfo(specID)
+            if spec == 258 then -- Shadow
+                return Enum.PowerType.Insanity
+            else -- Discipline / Holy
                 return nil
             end
         end
