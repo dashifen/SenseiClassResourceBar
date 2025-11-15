@@ -15,6 +15,8 @@ It automatically adapts to your character’s **class, specialization, and shape
 
 Automatically detects your character’s current resource type:
 
+**Health Bar**
+
 **Primary Resources Supported**  
 Mana, Rage, Energy, Focus, Fury, Runic Power, Astral Power, and more.
 
@@ -23,7 +25,7 @@ Mana, Rage, Energy, Focus, Fury, Runic Power, Astral Power, and more.
 *   **Paladin** → Holy Power
 *   **Rogue** → Combo Points
 *   **Monk** → Chi / **Stagger** (Brewmaster)
-*   **Warlock** → Soul Shards
+*   **Warlock** → Soul Shards (shows partial resource)
 *   **Death Knight** → Runes (with cooldown timers per rune)
 *   **Shaman** → Maelstrom (Elemental)
 *   **Evoker** → Essence
