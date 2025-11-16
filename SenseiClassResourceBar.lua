@@ -75,8 +75,9 @@ local commonDefaults = {
     barVisible = "Always Visible",
     scale = 1,
     width = 200,
-    height = 15,
     widthMode = "Manual",
+    height = 15,
+    fillDirection = "Left to Right",
     smoothProgress = true,
     showText = true,
     showFragmentedPowerBarText = false,
@@ -102,6 +103,13 @@ local availableWidthModes = {
     { text = "Manual", isRadio = true },
     { text = "Sync With Essential Cooldowns", isRadio = true },
     { text = "Sync With Utility Cooldowns", isRadio = true },
+}
+
+local availableFillDirections = {
+    { text = "Left to Right", isRadio = true },
+    { text = "Right to Left", isRadio = true },
+    { text = "Top to Bottom", isRadio = true },
+    { text = "Bottom to Top", isRadio = true },
 }
 
 -- Available outline styles
@@ -452,7 +460,7 @@ barConfigs.secondary = {
                 set = function(layoutName, value)
                     SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
                     SenseiClassResourceBarDB[dbName][layoutName].showTicks = value
-                    frame:UpdateTicks(layoutName)
+                    frame:UpdateTicksLayout(layoutName)
                 end,
             },
             {
@@ -470,7 +478,7 @@ barConfigs.secondary = {
                 set = function(layoutName, value)
                     SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
                     SenseiClassResourceBarDB[dbName][layoutName].tickThickness = value
-                    frame:UpdateTicks(layoutName)
+                    frame:UpdateTicksLayout(layoutName)
                 end,
             },
         }
@@ -653,7 +661,7 @@ local function CreateBarInstance(config, parent)
         end
     end
 
-    function frame:UpdateFragmentedPowerVisuals(layoutName)
+    function frame:UpdateFragmentedPowerDisplay(layoutName)
         layoutName = layoutName or LEM.GetActiveLayoutName() or "Default"
         local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
         if not data then return end
@@ -671,6 +679,7 @@ local function CreateBarInstance(config, parent)
         local barWidth = self:GetWidth()
         local barHeight = self:GetHeight()
         local fragmentedBarWidth = barWidth / maxPower
+        local fragmentedBarHeight = barHeight / maxPower
         
         -- Hide the main status bar fill (we display bars representing one (1) unit of resource each)
         self.statusBar:SetAlpha(0)
@@ -716,15 +725,27 @@ local function CreateBarInstance(config, parent)
                 cdLookup[v.index] = v
             end
 
+            if data.fillDirection == "Right to Left" or data.fillDirection == "Bottom to Top" then
+                for i = 1, math.floor(#displayOrder / 2) do
+                    displayOrder[i], displayOrder[#displayOrder - i + 1] = displayOrder[#displayOrder - i + 1], displayOrder[i]
+                end
+            end
+
             for pos = 1, #displayOrder do
                 local runeIndex = displayOrder[pos]
                 local runeFrame = self.fragmentedPowerBars[runeIndex]
                 local runeText = self.fragmentedPowerBarTexts[runeIndex]
 
                 if runeFrame then
-                    runeFrame:SetSize(fragmentedBarWidth, barHeight)
                     runeFrame:ClearAllPoints()
-                    runeFrame:SetPoint("LEFT", self, "LEFT", (pos - 1) * fragmentedBarWidth, 0)
+
+                    if self.statusBar:GetOrientation() == "VERTICAL" then
+                        runeFrame:SetSize(barWidth, fragmentedBarHeight)
+                        runeFrame:SetPoint("BOTTOM", self, "BOTTOM", 0, (pos - 1) * fragmentedBarHeight)
+                    else
+                        runeFrame:SetSize(fragmentedBarWidth, barHeight)
+                        runeFrame:SetPoint("LEFT", self, "LEFT", (pos - 1) * fragmentedBarWidth, 0)
+                    end
 
                     if readyLookup[runeIndex] then
                         runeFrame:SetMinMaxValues(0, 1)
@@ -747,9 +768,9 @@ local function CreateBarInstance(config, parent)
                     end
 
                     runeFrame:Show()
-                    self:ApplyFontSettings(layoutName)
                 end
             end
+            self:ApplyFontSettings(layoutName)
 
             -- Hide any extra rune frames beyond current maxPower
             for i = maxPower + 1, #self.fragmentedPowerBars do
@@ -804,11 +825,11 @@ local function CreateBarInstance(config, parent)
             if not LEM:IsInEditMode() then
                 self:Hide()
             else 
-                -- White bar, "0" text for edit mode is resource does not exist (e.g. Secondary resource for warrior)
-                self.textValue:SetText("0")
+                -- White bar, "4" text for edit mode is resource does not exist (e.g. Secondary resource for warrior)
                 self.statusBar:SetStatusBarColor(1, 1, 1)
                 self.statusBar:SetMinMaxValues(0, 5)
-                self.statusBar:SetValue(5)
+                self.textValue:SetText("4")
+                self.statusBar:SetValue(4)
             end
             return
         end
@@ -834,7 +855,7 @@ local function CreateBarInstance(config, parent)
         self.statusBar:SetStatusBarColor(color.r, color.g, color.b)
 
         if fragmentedPowerTypes[resource] then
-            self:UpdateFragmentedPowerVisuals(layoutName)
+            self:UpdateFragmentedPowerDisplay(layoutName)
         end
     end
 
@@ -866,7 +887,7 @@ local function CreateBarInstance(config, parent)
         local align = data.textAlign or defaults.textAlign or "CENTER"
 
         if align == "LEFT" or align == "RIGHT" or align == "CENTER" then
-        self.textValue:SetJustifyH(align)
+            self.textValue:SetJustifyH(align)
         else
             self.textValue:SetJustifyH("CENTER") -- Top/Bottom center horizontally
         end
@@ -886,6 +907,24 @@ local function CreateBarInstance(config, parent)
         end
     end
 
+    function frame:ApplyFillDirectionSettings(layoutName)
+        layoutName = layoutName or LEM.GetActiveLayoutName() or "Default"
+        local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
+        if not data then return end
+
+        if data.fillDirection == "Top to Bottom" or data.fillDirection == "Bottom to Top" then
+            self.statusBar:SetOrientation("VERTICAL")
+        else
+            self.statusBar:SetOrientation("HORIZONTAL")
+        end
+
+        if data.fillDirection == "Right to Left" or data.fillDirection == "Top to Bottom" then
+            self.statusBar:SetReverseFill(true)
+        else
+            self.statusBar:SetReverseFill(false)
+        end
+    end
+
     function frame:ApplyMaskAndBorderSettings(layoutName)
         layoutName = layoutName or LEM.GetActiveLayoutName() or "Default"
         local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
@@ -899,25 +938,34 @@ local function CreateBarInstance(config, parent)
         local styleName = data.maskAndBorderStyle or defaults.maskAndBorderStyle
         local style = maskAndBorderStyles[styleName]
         if not style then return end
-        
+
+        local width, height = self.statusBar:GetSize()
+        local verticalOrientation = self.statusBar:GetOrientation() == "VERTICAL"
+
         if self.mask then
             self.statusBar:GetStatusBarTexture():RemoveMaskTexture(self.mask)
             self.background:RemoveMaskTexture(self.mask)
+            self.mask:ClearAllPoints()
+        else
+            self.mask = self.statusBar:CreateMaskTexture()
         end
 
-        if not self.mask then
-            self.mask = self.statusBar:CreateMaskTexture()
-            self.mask:SetAllPoints()
-        end
         self.mask:SetTexture(style.mask)
+        self.mask:SetPoint("CENTER", self.statusBar, "CENTER")
+        self.mask:SetSize(verticalOrientation and height or width, verticalOrientation and width or height)
+        self.mask:SetRotation(verticalOrientation and math.rad(90) or 0)
 
         self.statusBar:GetStatusBarTexture():AddMaskTexture(self.mask)
         self.background:AddMaskTexture(self.mask)
 
         self.border:SetTexture(style.border)
+        self.border:ClearAllPoints()
+        self.border:SetPoint("CENTER", self.statusBar, "CENTER")
+        self.border:SetSize(verticalOrientation and height or width, verticalOrientation and width or height)
+        self.border:SetRotation(verticalOrientation and math.rad(90) or 0)
     end
 
-    function frame:UpdateTicks(layoutName, resource, max)
+    function frame:UpdateTicksLayout(layoutName, resource, max)
         layoutName = layoutName or LEM.GetActiveLayoutName() or "Default"
         resource = resource or self.config.getResource()
         max = max or ((type(resource) ~= "number") and 0 or UnitPowerMax("player", resource))
@@ -948,6 +996,8 @@ local function CreateBarInstance(config, parent)
         local height = self.statusBar:GetHeight()
         if width <= 0 or height <= 0 then return end
 
+        local tickThickness = data.tickThickness or defaults.tickThickness or 1
+
         local needed = max - 1
         for i = 1, needed do
             local t = self.ticks[i]
@@ -956,10 +1006,17 @@ local function CreateBarInstance(config, parent)
                 t:SetColorTexture(0, 0, 0, 1)
                 self.ticks[i] = t
             end
-            t:SetSize(data.tickThickness or 1, height)
             local x = (i / max) * width
             t:ClearAllPoints()
-            t:SetPoint("LEFT", self.statusBar, "LEFT", x - (data.tickThickness or 1) / 2, 0)
+            if self.statusBar:GetOrientation() == "VERTICAL" then
+                local y = (i / max) * height
+                t:SetSize(width, tickThickness)
+                t:SetPoint("BOTTOM", self.statusBar, "BOTTOM", 0, y - (tickThickness) / 2)
+            else
+                local x = (i / max) * width
+                t:SetSize(tickThickness, height)
+                t:SetPoint("LEFT", self.statusBar, "LEFT", x - (tickThickness) / 2, 0)
+            end
             t:Show()
         end
 
@@ -1224,13 +1281,12 @@ local function CreateBarInstance(config, parent)
         self:SetPoint(point, UIParent, point, x, y)
 
         self:ApplyFontSettings(layoutName)
+        self:ApplyFillDirectionSettings(layoutName)
         self:ApplyMaskAndBorderSettings(layoutName)
         self:ApplyBackgroundSettings(layoutName)
         self:ApplyForegroundSettings(layoutName)
         
-        if data.showTicks == true then
-            self:UpdateTicks(layoutName)
-        end
+        self:UpdateTicksLayout(layoutName)
 
         if data.smoothProgress then
             self:EnableSmoothProgress()
@@ -1241,7 +1297,7 @@ local function CreateBarInstance(config, parent)
         local resource = self.config.getResource()
         if fragmentedPowerTypes[resource] then
             self:CreateFragmentedPowerBars(layoutName)
-            self:UpdateFragmentedPowerVisuals(layoutName)
+            self:UpdateFragmentedPowerDisplay(layoutName)
         end
     end
 
@@ -1281,7 +1337,7 @@ local function CreateBarInstance(config, parent)
             
             self:UpdateDisplay()
             if event == "UNIT_MAXPOWER" then
-                self:UpdateTicks()
+                self:UpdateTicksLayout()
             end
 
         end
@@ -1359,7 +1415,7 @@ local function BuildLemSettings(config, frame)
             name = "Width",
             kind = LEM.SettingType.Slider,
             default = defaults.width,
-            minValue = 50,
+            minValue = 15,
             maxValue = 500,
             valueStep = 1,
             get = function(layoutName)
@@ -1378,7 +1434,7 @@ local function BuildLemSettings(config, frame)
             kind = LEM.SettingType.Slider,
             default = defaults.height,
             minValue = 10,
-            maxValue = 100,
+            maxValue = 500,
             valueStep = 1,
             get = function(layoutName)
                 local data = SenseiClassResourceBarDB[config.dbName][layoutName]
@@ -1387,6 +1443,21 @@ local function BuildLemSettings(config, frame)
             set = function(layoutName, value)
                 SenseiClassResourceBarDB[config.dbName][layoutName] = SenseiClassResourceBarDB[config.dbName][layoutName] or CopyTable(defaults)
                 SenseiClassResourceBarDB[config.dbName][layoutName].height = value
+                frame:ApplyLayout(layoutName)
+            end,
+        },
+        {
+            order = 13,
+            name = "Fill Direction",
+            kind = LEM.SettingType.Dropdown,
+            default = defaults.fillDirection,
+            values = availableFillDirections,
+            get = function(layoutName)
+                return (SenseiClassResourceBarDB[config.dbName][layoutName] and SenseiClassResourceBarDB[config.dbName][layoutName].fillDirection) or defaults.fillDirection
+            end,
+            set = function(layoutName, value)
+                SenseiClassResourceBarDB[config.dbName][layoutName] = SenseiClassResourceBarDB[config.dbName][layoutName] or CopyTable(defaults)
+                SenseiClassResourceBarDB[config.dbName][layoutName].fillDirection = value
                 frame:ApplyLayout(layoutName)
             end,
         },
