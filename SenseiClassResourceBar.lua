@@ -149,9 +149,7 @@ local maskAndBorderStyles = {
         mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\BarBorders\blizzard-classic-mask.png]],
         border = LSM:Fetch(LSM.MediaType.BORDER, "SCRB Border Blizzard Classic"),
     },
-    ["None"] = {
-        border = [[]],
-    }
+    ["None"] = {}
     -- Add more styles here as needed
     -- ["style-name"] = {
     --     type = "", -- texture or fixed. Other value will not be displayed (i.e hidden)
@@ -634,40 +632,40 @@ local function CreateBarInstance(config, parent, frameLevel)
     frame.editModeName = config.editModeName
 
     -- BACKGROUND
-    frame.background = frame:CreateTexture(nil, "BACKGROUND")
-    frame.background:SetAllPoints()
-    frame.background:SetColorTexture(0, 0, 0, 0.5)
+    frame.Background = frame:CreateTexture(nil, "BACKGROUND")
+    frame.Background:SetAllPoints()
+    frame.Background:SetColorTexture(0, 0, 0, 0.5)
 
     -- STATUS BAR
-    frame.statusBar = CreateFrame("StatusBar", nil, frame)
-    frame.statusBar:SetAllPoints()
-    frame.statusBar:SetStatusBarTexture(LSM:Fetch(LSM.MediaType.STATUSBAR, "SCRB FG Fade Left"))
-    frame.statusBar:SetFrameLevel(frame:GetFrameLevel())
+    frame.StatusBar = CreateFrame("StatusBar", nil, frame)
+    frame.StatusBar:SetAllPoints()
+    frame.StatusBar:SetStatusBarTexture(LSM:Fetch(LSM.MediaType.STATUSBAR, "SCRB FG Fade Left"))
+    frame.StatusBar:SetFrameLevel(frame:GetFrameLevel())
 
     -- MASK
-    frame.mask = frame.statusBar:CreateMaskTexture()
-    frame.mask:SetAllPoints()
-    frame.mask:SetTexture([[Interface\AddOns\SenseiClassResourceBar\Textures\Specials\white.png]])
+    frame.Mask = frame.StatusBar:CreateMaskTexture()
+    frame.Mask:SetAllPoints()
+    frame.Mask:SetTexture([[Interface\AddOns\SenseiClassResourceBar\Textures\Specials\white.png]])
 
-    frame.statusBar:GetStatusBarTexture():AddMaskTexture(frame.mask)
-    frame.background:AddMaskTexture(frame.mask)
+    frame.StatusBar:GetStatusBarTexture():AddMaskTexture(frame.Mask)
+    frame.Background:AddMaskTexture(frame.Mask)
 
     -- BORDER
-    frame.border = frame:CreateTexture(nil, "OVERLAY")
-    frame.border:SetAllPoints()
-    frame.border:SetBlendMode("BLEND")
-    frame.border:SetVertexColor(0, 0, 0)
-    frame.border:Hide()
+    frame.Border = frame:CreateTexture(nil, "OVERLAY")
+    frame.Border:SetAllPoints()
+    frame.Border:SetBlendMode("BLEND")
+    frame.Border:SetVertexColor(0, 0, 0)
+    frame.Border:Hide()
 
     -- TEXT FRAME
-    frame.textFrame = CreateFrame("Frame", nil, frame)
-    frame.textFrame:SetAllPoints(frame)
-    frame.textFrame:SetFrameLevel(frame.statusBar:GetFrameLevel() + 2)
+    frame.TextFrame = CreateFrame("Frame", nil, frame)
+    frame.TextFrame:SetAllPoints(frame)
+    frame.TextFrame:SetFrameLevel(frame.StatusBar:GetFrameLevel() + 2)
 
-    frame.textValue = frame.textFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    frame.textValue:SetPoint("CENTER", frame.textFrame, "CENTER", 0, 0)
-    frame.textValue:SetJustifyH("CENTER")
-    frame.textValue:SetText("0")
+    frame.TextValue = frame.TextFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    frame.TextValue:SetPoint("CENTER", frame.TextFrame, "CENTER", 0, 0)
+    frame.TextValue:SetJustifyH("CENTER")
+    frame.TextValue:SetText("0")
 
     -- STATE
     frame.smoothEnabled = false
@@ -675,8 +673,8 @@ local function CreateBarInstance(config, parent, frameLevel)
     frame.elapsed = 0
 
     -- Fragmented powers (Runes, Essences) specific visual elements
-    frame.fragmentedPowerBars = {}
-    frame.fragmentedPowerBarTexts = {}
+    frame.FragmentedPowerBars = {}
+    frame.FragmentedPowerBarTexts = {}
 
     -- METHODS
     function frame:CreateFragmentedPowerBars(layoutName)
@@ -692,7 +690,7 @@ local function CreateBarInstance(config, parent, frameLevel)
         local resource = self.config.getResource()
         if not resource then return end
         for i = 1, UnitPowerMax("player", resource) or 0 do
-            if not self.fragmentedPowerBars[i] then
+            if not self.FragmentedPowerBars[i] then
                 -- Create a small status bar for each rune (behind main bar, in front of background)
                 local bar = CreateFrame("StatusBar", nil, self)
 
@@ -702,17 +700,17 @@ local function CreateBarInstance(config, parent, frameLevel)
                 if fgTexture then
                     bar:SetStatusBarTexture(fgTexture)
                 end
-                bar:GetStatusBarTexture():AddMaskTexture(self.mask)
+                bar:GetStatusBarTexture():AddMaskTexture(self.Mask)
                 bar:SetOrientation("HORIZONTAL")
-                bar:SetFrameLevel(self.statusBar:GetFrameLevel())
-                self.fragmentedPowerBars[i] = bar
+                bar:SetFrameLevel(self.StatusBar:GetFrameLevel())
+                self.FragmentedPowerBars[i] = bar
                 
                 -- Create text for reload time display
                 local text = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
                 text:SetPoint("CENTER", bar, "CENTER", 0, 0)
                 text:SetJustifyH("CENTER")
                 text:SetText("")
-                self.fragmentedPowerBarTexts[i] = text
+                self.FragmentedPowerBarTexts[i] = text
             end
         end
     end
@@ -738,9 +736,9 @@ local function CreateBarInstance(config, parent, frameLevel)
         local fragmentedBarHeight = barHeight / maxPower
         
         -- Hide the main status bar fill (we display bars representing one (1) unit of resource each)
-        self.statusBar:SetAlpha(0)
+        self.StatusBar:SetAlpha(0)
 
-        local r, g, b = self.statusBar:GetStatusBarColor()
+        local r, g, b = self.StatusBar:GetStatusBarColor()
         local color = { r = r, g = g, b = b }
 
         if resource == Enum.PowerType.Runes then
@@ -790,13 +788,13 @@ local function CreateBarInstance(config, parent, frameLevel)
 
             for pos = 1, #displayOrder do
                 local runeIndex = displayOrder[pos]
-                local runeFrame = self.fragmentedPowerBars[runeIndex]
-                local runeText = self.fragmentedPowerBarTexts[runeIndex]
+                local runeFrame = self.FragmentedPowerBars[runeIndex]
+                local runeText = self.FragmentedPowerBarTexts[runeIndex]
 
                 if runeFrame then
                     runeFrame:ClearAllPoints()
 
-                    if self.statusBar:GetOrientation() == "VERTICAL" then
+                    if self.StatusBar:GetOrientation() == "VERTICAL" then
                         runeFrame:SetSize(barWidth, fragmentedBarHeight)
                         runeFrame:SetPoint("BOTTOM", self, "BOTTOM", 0, (pos - 1) * fragmentedBarHeight)
                     else
@@ -830,11 +828,11 @@ local function CreateBarInstance(config, parent, frameLevel)
             self:ApplyFontSettings(layoutName)
 
             -- Hide any extra rune frames beyond current maxPower
-            for i = maxPower + 1, #self.fragmentedPowerBars do
-                if self.fragmentedPowerBars[i] then
-                    self.fragmentedPowerBars[i]:Hide()
-                    if self.fragmentedPowerBarTexts[i] then
-                        self.fragmentedPowerBarTexts[i]:SetText("")
+            for i = maxPower + 1, #self.FragmentedPowerBars do
+                if self.FragmentedPowerBars[i] then
+                    self.FragmentedPowerBars[i]:Hide()
+                    if self.FragmentedPowerBarTexts[i] then
+                        self.FragmentedPowerBarTexts[i]:SetText("")
                     end
                 end
             end
@@ -897,10 +895,10 @@ local function CreateBarInstance(config, parent, frameLevel)
                 self:Hide()
             else 
                 -- White bar, "4" text for edit mode is resource does not exist (e.g. Secondary resource for warrior)
-                self.statusBar:SetStatusBarColor(1, 1, 1)
-                self.statusBar:SetMinMaxValues(0, 5)
-                self.textValue:SetText("4")
-                self.statusBar:SetValue(4)
+                self.StatusBar:SetStatusBarColor(1, 1, 1)
+                self.StatusBar:SetMinMaxValues(0, 5)
+                self.TextValue:SetText("4")
+                self.StatusBar:SetValue(4)
             end
             return
         end
@@ -913,20 +911,20 @@ local function CreateBarInstance(config, parent, frameLevel)
             return
         end
 
-        self.statusBar:SetMinMaxValues(0, max)
-        self.statusBar:SetValue(current)
+        self.StatusBar:SetMinMaxValues(0, max)
+        self.StatusBar:SetValue(current)
 
         if valueType == "percent" then
-            self.textValue:SetText(string.format("%.0f%%", displayValue))
+            self.TextValue:SetText(string.format("%.0f%%", displayValue))
         else
-            self.textValue:SetText(AbbreviateNumbers(displayValue))
+            self.TextValue:SetText(AbbreviateNumbers(displayValue))
         end
 
         local color = self.config.getBarColor(resource, frame)
         if (data.usePrimaryResourceAtlas == true or data.useSecondaryResourceAtlas == true) and (color.atlasElementName or color.atlas) then
-            self.statusBar:SetStatusBarColor(1, 1, 1);
+            self.StatusBar:SetStatusBarColor(1, 1, 1);
         else
-            self.statusBar:SetStatusBarColor(color.r or 1, color.g or 1, color.b or 1);
+            self.StatusBar:SetStatusBarColor(color.r or 1, color.g or 1, color.b or 1);
         end
 
         if fragmentedPowerTypes[resource] then
@@ -949,11 +947,11 @@ local function CreateBarInstance(config, parent, frameLevel)
         local size = data.fontSize or defaults.fontSize
         local outline = data.fontOutline or defaults.fontOutline
 
-        self.textValue:SetFont(font, size * scale, outline)
-        self.textValue:SetShadowColor(0, 0, 0, 0.8)
-        self.textValue:SetShadowOffset(1, -1)
+        self.TextValue:SetFont(font, size * scale, outline)
+        self.TextValue:SetShadowColor(0, 0, 0, 0.8)
+        self.TextValue:SetShadowOffset(1, -1)
 
-        for _, fragmentedPowerBarText in ipairs(self.fragmentedPowerBarTexts) do
+        for _, fragmentedPowerBarText in ipairs(self.FragmentedPowerBarTexts) do
             fragmentedPowerBarText:SetFont(font, math.max(6, size - 2) * scale, outline)
             fragmentedPowerBarText:SetShadowColor(0, 0, 0, 0.8)
             fragmentedPowerBarText:SetShadowOffset(1, -1)
@@ -963,23 +961,23 @@ local function CreateBarInstance(config, parent, frameLevel)
         local align = data.textAlign or defaults.textAlign or "CENTER"
 
         if align == "LEFT" or align == "RIGHT" or align == "CENTER" then
-            self.textValue:SetJustifyH(align)
+            self.TextValue:SetJustifyH(align)
         else
-            self.textValue:SetJustifyH("CENTER") -- Top/Bottom center horizontally
+            self.TextValue:SetJustifyH("CENTER") -- Top/Bottom center horizontally
         end
 
         -- Re-anchor the text inside the text frame depending on alignment
-        self.textValue:ClearAllPoints()
+        self.TextValue:ClearAllPoints()
         if align == "LEFT" then
-            self.textValue:SetPoint("LEFT", self.textFrame, "LEFT", 4, 0)
+            self.TextValue:SetPoint("LEFT", frame.TextFrame, "LEFT", 4, 0)
         elseif align == "RIGHT" then
-            self.textValue:SetPoint("RIGHT", self.textFrame, "RIGHT", -4, 0)
+            self.TextValue:SetPoint("RIGHT", frame.TextFrame, "RIGHT", -4, 0)
         elseif align == "TOP" then
-            self.textValue:SetPoint("TOP", self.textFrame, "TOP", 0, -4)
+            self.TextValue:SetPoint("TOP", frame.TextFrame, "TOP", 0, -4)
         elseif align == "BOTTOM" then
-            self.textValue:SetPoint("BOTTOM", self.textFrame, "BOTTOM", 0, 4)
+            self.TextValue:SetPoint("BOTTOM", frame.TextFrame, "BOTTOM", 0, 4)
         else -- Center
-            self.textValue:SetPoint("CENTER", self.textFrame, "CENTER", 0, 0)
+            self.TextValue:SetPoint("CENTER", frame.TextFrame, "CENTER", 0, 0)
         end
     end
 
@@ -989,15 +987,29 @@ local function CreateBarInstance(config, parent, frameLevel)
         if not data then return end
 
         if data.fillDirection == "Top to Bottom" or data.fillDirection == "Bottom to Top" then
-            self.statusBar:SetOrientation("VERTICAL")
+            self.StatusBar:SetOrientation("VERTICAL")
         else
-            self.statusBar:SetOrientation("HORIZONTAL")
+            self.StatusBar:SetOrientation("HORIZONTAL")
         end
 
         if data.fillDirection == "Right to Left" or data.fillDirection == "Top to Bottom" then
-            self.statusBar:SetReverseFill(true)
+            self.StatusBar:SetReverseFill(true)
         else
-            self.statusBar:SetReverseFill(false)
+            self.StatusBar:SetReverseFill(false)
+        end
+
+        for _, fragmentedPowerBar in ipairs(self.FragmentedPowerBars) do
+            if data.fillDirection == "Top to Bottom" or data.fillDirection == "Bottom to Top" then
+                fragmentedPowerBar:SetOrientation("VERTICAL")
+            else
+                fragmentedPowerBar:SetOrientation("HORIZONTAL")
+            end
+
+            if data.fillDirection == "Right to Left" or data.fillDirection == "Top to Bottom" then
+                fragmentedPowerBar:SetReverseFill(true)
+            else
+                fragmentedPowerBar:SetReverseFill(false)
+            end
         end
     end
 
@@ -1015,24 +1027,24 @@ local function CreateBarInstance(config, parent, frameLevel)
         local style = maskAndBorderStyles[styleName]
         if not style then return end
 
-        local width, height = self.statusBar:GetSize()
-        local verticalOrientation = self.statusBar:GetOrientation() == "VERTICAL"
+        local width, height = self.StatusBar:GetSize()
+        local verticalOrientation = self.StatusBar:GetOrientation() == "VERTICAL"
 
-        if self.mask then
-            self.statusBar:GetStatusBarTexture():RemoveMaskTexture(self.mask)
-            self.background:RemoveMaskTexture(self.mask)
-            self.mask:ClearAllPoints()
+        if self.Mask then
+            self.StatusBar:GetStatusBarTexture():RemoveMaskTexture(self.Mask)
+            self.Background:RemoveMaskTexture(self.Mask)
+            self.Mask:ClearAllPoints()
         else
-            self.mask = self.statusBar:CreateMaskTexture()
+            self.Mask = self.StatusBar:CreateMaskTexture()
         end
 
-        self.mask:SetTexture(style.mask or [[Interface\AddOns\SenseiClassResourceBar\Textures\Specials\white.png]])
-        self.mask:SetPoint("CENTER", self.statusBar, "CENTER")
-        self.mask:SetSize(verticalOrientation and height or width, verticalOrientation and width or height)
-        self.mask:SetRotation(verticalOrientation and math.rad(90) or 0)
+        self.Mask:SetTexture(style.mask or [[Interface\AddOns\SenseiClassResourceBar\Textures\Specials\white.png]])
+        self.Mask:SetPoint("CENTER", self.StatusBar, "CENTER")
+        self.Mask:SetSize(verticalOrientation and height or width, verticalOrientation and width or height)
+        self.Mask:SetRotation(verticalOrientation and math.rad(90) or 0)
 
-        self.statusBar:GetStatusBarTexture():AddMaskTexture(self.mask)
-        self.background:AddMaskTexture(self.mask)
+        self.StatusBar:GetStatusBarTexture():AddMaskTexture(self.Mask)
+        self.Background:AddMaskTexture(self.Mask)
 
         if style.type == "fixed" then
             local bordersInfo = {
@@ -1052,7 +1064,7 @@ local function CreateBarInstance(config, parent, frameLevel)
                 end
             end
 
-            self.border:Hide()
+            self.Border:Hide()
 
             -- Linear multiplier: for example, thickness grows 1x at scale 1, 2x at scale 2
             local thickness = (style.thickness or 1) * math.max(data.scale or defaults.scale, 1)
@@ -1071,12 +1083,12 @@ local function CreateBarInstance(config, parent, frameLevel)
                 t:Show()
             end
         elseif style.type == "texture" then
-            self.border:Show()
-            self.border:SetTexture(style.border)
-            self.border:ClearAllPoints()
-            self.border:SetPoint("CENTER", self.statusBar, "CENTER")
-            self.border:SetSize(verticalOrientation and height or width, verticalOrientation and width or height)
-            self.border:SetRotation(verticalOrientation and math.rad(90) or 0)
+            self.Border:Show()
+            self.Border:SetTexture(style.border)
+            self.Border:ClearAllPoints()
+            self.Border:SetPoint("CENTER", self.StatusBar, "CENTER")
+            self.Border:SetSize(verticalOrientation and height or width, verticalOrientation and width or height)
+            self.Border:SetRotation(verticalOrientation and math.rad(90) or 0)
 
             if self.fixedThicknessBorder then
                 for _, t in pairs(self.fixedThicknessBorder) do
@@ -1084,7 +1096,7 @@ local function CreateBarInstance(config, parent, frameLevel)
                 end
             end
         else
-            self.border:Hide()
+            self.Border:Hide()
 
             if self.fixedThicknessBorder then
                 for _, t in pairs(self.fixedThicknessBorder) do
@@ -1121,8 +1133,8 @@ local function CreateBarInstance(config, parent, frameLevel)
             return
         end
 
-        local width = self.statusBar:GetWidth()
-        local height = self.statusBar:GetHeight()
+        local width = self.StatusBar:GetWidth()
+        local height = self.StatusBar:GetHeight()
         if width <= 0 or height <= 0 then return end
 
         local tickThickness = data.tickThickness or defaults.tickThickness or 1
@@ -1136,14 +1148,14 @@ local function CreateBarInstance(config, parent, frameLevel)
                 self.ticks[i] = t
             end
             t:ClearAllPoints()
-            if self.statusBar:GetOrientation() == "VERTICAL" then
+            if self.StatusBar:GetOrientation() == "VERTICAL" then
                 local y = (i / max) * height
                 t:SetSize(width, tickThickness)
-                t:SetPoint("BOTTOM", self.statusBar, "BOTTOM", 0, y - (tickThickness) / 2)
+                t:SetPoint("BOTTOM", self.StatusBar, "BOTTOM", 0, y - (tickThickness) / 2)
             else
                 local x = (i / max) * width
                 t:SetSize(tickThickness, height)
-                t:SetPoint("LEFT", self.statusBar, "LEFT", x - (tickThickness) / 2, 0)
+                t:SetPoint("LEFT", self.StatusBar, "LEFT", x - (tickThickness) / 2, 0)
             end
             t:Show()
         end
@@ -1170,10 +1182,10 @@ local function CreateBarInstance(config, parent, frameLevel)
         if not bgConfig then return end
 
         if bgConfig.type == "color" then
-            self.background:SetColorTexture(bgConfig.r or 1, bgConfig.g or 1, bgConfig.b or 1, bgConfig.a or 1)
+            self.Background:SetColorTexture(bgConfig.r or 1, bgConfig.g or 1, bgConfig.b or 1, bgConfig.a or 1)
         elseif bgConfig.type == "texture" then
-            self.background:SetTexture(bgConfig.value)
-            self.background:SetVertexColor(1, 1, 1, 1)
+            self.Background:SetTexture(bgConfig.value)
+            self.Background:SetVertexColor(1, 1, 1, 1)
         end
     end
 
@@ -1205,9 +1217,9 @@ local function CreateBarInstance(config, parent, frameLevel)
         end
         
         if fgTexture then
-            frame.statusBar:SetStatusBarTexture(fgTexture)
+            frame.StatusBar:SetStatusBarTexture(fgTexture)
 
-            for _, fragmentedPowerBar in ipairs(self.fragmentedPowerBars) do
+            for _, fragmentedPowerBar in ipairs(self.FragmentedPowerBars) do
                 fragmentedPowerBar:SetStatusBarTexture(fgTexture)
             end
         end
@@ -1263,9 +1275,9 @@ local function CreateBarInstance(config, parent, frameLevel)
         local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
         if not data then return end
 
-        self.textFrame:SetShown(data.showText ~= false)
+        frame.TextFrame:SetShown(data.showText ~= false)
 
-        for _, fragmentedPowerBarText in ipairs(self.fragmentedPowerBarTexts) do
+        for _, fragmentedPowerBarText in ipairs(self.FragmentedPowerBarTexts) do
             fragmentedPowerBarText:SetShown(data.showFragmentedPowerBarText ~= false)
         end
     end
