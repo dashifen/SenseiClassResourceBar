@@ -1328,11 +1328,13 @@ local function CreateBarInstance(config, parent, frameLevel)
             if f and playerClass == class then
                 if data.hideBlizzardSecondaryResourceUi then
                     if LEM:IsInEditMode() then
-                        f:Show()
+                        if class ~= "DRUID" or (class == "DRUID" and GetShapeshiftFormID() == 1) then
+                            f:Show()
+                        end
                     else 
                         f:Hide()
                     end
-                else
+                elseif class ~= "DRUID" or (class == "DRUID" and GetShapeshiftFormID() == 1) then
                     f:Show()
                 end
             end
