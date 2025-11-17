@@ -209,7 +209,7 @@ barConfigs.primary = {
         showManaAsPercent = false,
         useResourceAtlas = false,
     },
-    getResource = function()
+    getResource = function(_, data)
         local playerClass = select(2, UnitClass("player"))
         local primaryResources = {
             ["DEATHKNIGHT"] = Enum.PowerType.RunicPower,
@@ -248,8 +248,8 @@ barConfigs.primary = {
             ["WARRIOR"]     = Enum.PowerType.Rage,
         }
 
-        local spec = GetSpecialization()
-        local specID = GetSpecializationInfo(spec)
+        local spec = C_SpecializationInfo.GetSpecialization()
+        local specID = C_SpecializationInfo.GetSpecializationInfo(spec)
 
         -- Druid: form-based
         if playerClass == "DRUID" then
@@ -281,7 +281,7 @@ barConfigs.primary = {
             return max, current, current, "number"
         end
     end,
-    getBarColor = function(resource, frame)
+    getBarColor = function(frame,  _, resource)
         return frame:GetResourceColor(resource)
     end,
     lemSettings = function(dbName, defaults, frame)
@@ -339,11 +339,12 @@ barConfigs.secondary = {
         x = 0,
         y = -40,
         hideBlizzardSecondaryResourceUi = false,
+        hideManaOnDps = false,
         showTicks = true,
         tickThickness = 1,
         useResourceAtlas = false,
     },
-    getResource = function()
+    getResource = function(_, data)
         local playerClass = select(2, UnitClass("player"))
         local secondaryResources = {
             ["DEATHKNIGHT"] = Enum.PowerType.Runes,
@@ -376,8 +377,8 @@ barConfigs.secondary = {
             ["WARRIOR"]     = nil,
         }
 
-        local spec = GetSpecialization()
-        local specID = GetSpecializationInfo(spec)
+        local spec = C_SpecializationInfo.GetSpecialization()
+        local specID = C_SpecializationInfo.GetSpecializationInfo(spec)
 
         -- Druid: form-based
         if playerClass == "DRUID" then
@@ -465,7 +466,7 @@ barConfigs.secondary = {
 
         return max, current, current, "number"
     end,
-    getBarColor = function(resource, frame)
+    getBarColor = function(frame, _, resource)
         return frame:GetResourceColor(resource)
     end,
     lemSettings = function(dbName, defaults, frame)
@@ -510,6 +511,24 @@ barConfigs.secondary = {
             },
             {
                 order = 42,
+                name = "Hide Mana On Damage Dealers",
+                kind = LEM.SettingType.Checkbox,
+                default = defaults.hideManaOnDps,
+                get = function(layoutName)
+                    local data = SenseiClassResourceBarDB[dbName][layoutName]
+                    if data and data.hideManaOnDps ~= nil then
+                        return data.hideManaOnDps
+                    else
+                        return defaults.hideManaOnDps
+                    end
+                end,
+                set = function(layoutName, value)
+                    SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
+                    SenseiClassResourceBarDB[dbName][layoutName].hideManaOnDps = value
+                end,
+            },
+            {
+                order = 43,
                 name = "Show Ticks When Available",
                 kind = LEM.SettingType.Checkbox,
                 default = defaults.showTicks,
@@ -528,7 +547,7 @@ barConfigs.secondary = {
                 end,
             },
             {
-                order = 43,
+                order = 44,
                 name = "Tick Thickness",
                 kind = LEM.SettingType.Slider,
                 default = defaults.tickThickness,
@@ -604,8 +623,8 @@ barConfigs.tertiary = {
             ["WARRIOR"]     = nil,
         }
 
-        local spec = GetSpecialization()
-        local specID = GetSpecializationInfo(spec)
+        local spec = C_SpecializationInfo.GetSpecialization()
+        local specID = C_SpecializationInfo.GetSpecializationInfo(spec)
 
         -- Druid: form-based
         if playerClass == "DRUID" then
@@ -651,7 +670,7 @@ barConfigs.tertiary = {
 
         return max, current, current, "number"
     end,
-    getBarColor = function(resource, frame)
+    getBarColor = function(frame, _, resource)
         return frame:GetResourceColor(resource)
     end,
     lemSettings = function(dbName, defaults, frame)
@@ -703,9 +722,7 @@ barConfigs.healthBar = {
         
         return max, current, current, "number"
     end,
-    getBarColor = function(_, frame)
-        local layoutName = LEM.GetActiveLayoutName() or "Default"
-        local data = SenseiClassResourceBarDB[frame.config.dbName][layoutName]
+    getBarColor = function(frame, data)
         local playerClass = select(2, UnitClass("player"))
         
         if data and data.useClassColor == true then
@@ -829,7 +846,7 @@ local function CreateBarInstance(config, parent, frameLevel)
             defaults[k] = v
         end
 
-        local resource = self.config.getResource()
+        local resource = self.config.getResource(self, data)
         if not resource then return end
         for i = 1, UnitPowerMax("player", resource) or 0 do
             if not self.FragmentedPowerBars[i] then
@@ -867,7 +884,7 @@ local function CreateBarInstance(config, parent, frameLevel)
             defaults[k] = v
         end
         
-        local resource = self.config.getResource()
+        local resource = self.config.getResource(self, data)
         if not resource then return end
         local maxPower = UnitPowerMax("player", resource)
         if maxPower <= 0 then return end
@@ -1000,8 +1017,8 @@ local function CreateBarInstance(config, parent, frameLevel)
                 color = { r = 0.278, g = 0.125, b = 0.796, atlas = "UF-DDH-VoidMeta-Bar-Ready" }
             end
         elseif resource == Enum.PowerType.Runes then
-            local spec = GetSpecialization()
-            local specID = GetSpecializationInfo(spec)
+            local spec = C_SpecializationInfo.GetSpecialization()
+            local specID = C_SpecializationInfo.GetSpecializationInfo(spec)
 
             if specID == 250 then -- Blood
                 color = { r = 1, g = 0.2, b = 0.3 }
@@ -1030,7 +1047,7 @@ local function CreateBarInstance(config, parent, frameLevel)
         local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
         if not data then return end
 
-        local resource = self.config.getResource()
+        local resource = self.config.getResource(self, data)
         if not resource then
             if not LEM:IsInEditMode() then
                 self:Hide()
@@ -1243,11 +1260,11 @@ local function CreateBarInstance(config, parent, frameLevel)
 
     function frame:UpdateTicksLayout(layoutName, resource, max)
         layoutName = layoutName or LEM.GetActiveLayoutName() or "Default"
-        resource = resource or self.config.getResource()
-        max = max or ((type(resource) ~= "number") and 0 or UnitPowerMax("player", resource))
-
         local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
         if not data then return end
+
+        resource = resource or self.config.getResource(self, data)
+        max = max or ((type(resource) ~= "number") and 0 or UnitPowerMax("player", resource))
 
         local defaults = CopyTable(commonDefaults)
         for k, v in pairs(self.config.defaultValues or {}) do
@@ -1337,8 +1354,8 @@ local function CreateBarInstance(config, parent, frameLevel)
         local fgStyleName = data.foregroundStyle or defaults.foregroundStyle
         local fgTexture = LSM:Fetch(LSM.MediaType.STATUSBAR, fgStyleName)
         
-        local resource = self.config.getResource()
-        local color = self.config.getBarColor(resource, frame)
+        local resource = self.config.getResource(self, data)
+        local color = self.config.getBarColor(self, data, resource)
         if data.useResourceAtlas == true and (color.atlasElementName or color.atlas) then
             if color.atlasElementName then
                 if color.hasClassResourceVariant then
@@ -1406,6 +1423,14 @@ local function CreateBarInstance(config, parent, frameLevel)
             end
         else
             self:Show()
+        end
+
+        local resource = self.config.getResource(self, data)
+        local spec = C_SpecializationInfo.GetSpecialization()
+        local role = select(5, C_SpecializationInfo.GetSpecializationInfo(spec))
+
+        if resource == Enum.PowerType.Mana and role == "DAMAGER" and data.hideManaOnDps == true then
+            self:Hide();
         end
 
         self:ApplyTextVisibilitySettings(layoutName)
@@ -1603,7 +1628,7 @@ local function CreateBarInstance(config, parent, frameLevel)
             self:DisableSmoothProgress()
         end
         
-        local resource = self.config.getResource()
+        local resource = self.config.getResource(self, data)
         if fragmentedPowerTypes[resource] then
             self:CreateFragmentedPowerBars(layoutName)
             self:UpdateFragmentedPowerDisplay(layoutName)
