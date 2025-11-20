@@ -108,6 +108,14 @@ function SecondaryResourceBarMixin:GetResourceValue(resource)
         local max = UnitPowerMax("player", resource, true)
         if max <= 0 then return nil, nil, nil, nil end
 
+        local spec = C_SpecializationInfo.GetSpecialization()
+        local specID = C_SpecializationInfo.GetSpecializationInfo(spec)
+
+        -- For destruction only, display half shard
+        if specID == 267 then
+            return max, current, current, "number"
+        end
+
         return max, current, currentDisplay, "number"
     end
 
