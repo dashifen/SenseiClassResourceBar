@@ -258,7 +258,9 @@ function BarMixin:UpdateDisplay(layoutName, force)
         self.TextValue:SetText(string.format("%.0f%%", displayValue))
     elseif valueType == "timer" then
         self.TextValue:SetText(string.format("%." .. (precision or 1) .. "f", displayValue))
-    else
+    elseif valueType == "custom" then
+        self.TextValue:SetText(displayValue)
+    else -- Default to number
         self.TextValue:SetText(AbbreviateNumbers(displayValue))
     end
 

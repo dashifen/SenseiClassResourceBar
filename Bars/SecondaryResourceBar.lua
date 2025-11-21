@@ -3,6 +3,7 @@ local _, addonTable = ...
 local LEM = addonTable.LEM or LibStub("LibEditMode")
 
 local SecondaryResourceBarMixin = Mixin({}, addonTable.PowerBarMixin)
+local buildVersion = select(4, GetBuildInfo())
 
 function SecondaryResourceBarMixin:GetResourceNumberColor()
     return addonTable:GetOverrideTextColor(addonTable.RegistereredBar.SecondaryResourceBar.frameName, addonTable.TextId.ResourceNumber) or { r = 1, b = 1, g = 1}
@@ -62,6 +63,18 @@ function SecondaryResourceBarMixin:GetResource()
     end
 end
 
+local abbrevDataWarlockSoulShards = {
+  breakpointData = {
+    {
+      breakpoint = 0,
+      abbreviation = "",
+      significandDivisor = 1,
+      fractionDivisor = 10,
+      abbreviationIsGlobal = false,
+    },
+  },
+}
+
 function SecondaryResourceBarMixin:GetResourceValue(resource)
     if not resource then return nil, nil, nil, nil end
 
@@ -110,10 +123,13 @@ function SecondaryResourceBarMixin:GetResourceValue(resource)
 
         local spec = C_SpecializationInfo.GetSpecialization()
         local specID = C_SpecializationInfo.GetSpecializationInfo(spec)
-
         -- For destruction only, display half shard
         if specID == 267 then
-            return max, current, current, "number"
+            if buildVersion >= 120000 then
+                return max, current, AbbreviateNumbers(current, abbrevDataWarlockSoulShards), "custom"
+            else
+                return max, current, current / 10, "custom"
+            end
         end
 
         return max, current, currentDisplay, "number"
