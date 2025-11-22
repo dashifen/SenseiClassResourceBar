@@ -3,6 +3,7 @@ local _, addonTable = ...
 local LEM = addonTable.LEM or LibStub("LibEditMode")
 
 local HealthBarMixin = Mixin({}, addonTable.BarMixin)
+local buildVersion = select(4, GetBuildInfo())
 
 function HealthBarMixin:GetBarColor()
     local playerClass = select(2, UnitClass("player"))
@@ -34,7 +35,17 @@ function HealthBarMixin:GetResourceValue()
     local max = UnitHealthMax("player")
     if max <= 0 then return nil, nil, nil, nil end
 
-    return max, current, current, "number"
+    local data = self:GetData()
+    if data and data.showHealthAsPercent then
+        -- UnitHealthPercent does not exist prior to Midnight
+        if (buildVersion or 0) < 120000 then
+            return max, current, math.floor((current / max) * 100 + 0.5), "percent"
+        else
+            return max, current, UnitHealthPercent("player", true, true), "percent"
+        end
+    else
+        return max, current, current, "number"
+    end
 end
 
 function HealthBarMixin:OnLoad()
@@ -78,6 +89,7 @@ addonTable.RegistereredBar.HealthBar = {
         y = 40,
         barVisible = "Hidden",
         hideBlizzardPlayerContainerUi = false,
+        showHealthAsPercent = false,
         useClassColor = true,
     },
     lemSettings = function(bar, defaults)
@@ -101,6 +113,25 @@ addonTable.RegistereredBar.HealthBar = {
                     SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
                     SenseiClassResourceBarDB[dbName][layoutName].hideBlizzardPlayerContainerUi = value
                     bar:HideBlizzardPlayerContainer(layoutName)
+                end,
+            },
+            {
+                order = 41,
+                name = "Show As Percent",
+                kind = LEM.SettingType.Checkbox,
+                default = defaults.showHealthAsPercent,
+                get = function(layoutName)
+                    local data = SenseiClassResourceBarDB[dbName][layoutName]
+                    if data and data.showHealthAsPercent ~= nil then
+                        return data.showHealthAsPercent
+                    else
+                        return defaults.showHealthAsPercent
+                    end
+                end,
+                set = function(layoutName, value)
+                    SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
+                    SenseiClassResourceBarDB[dbName][layoutName].showHealthAsPercent = value
+                    bar:UpdateDisplay(layoutName)
                 end,
             },
             {
