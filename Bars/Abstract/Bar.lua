@@ -198,7 +198,7 @@ function BarMixin:EnableFasterUpdates()
     self.fasterUpdates = true
     self.Frame:SetScript("OnUpdate", function(_, delta)
         self.Frame.elapsed = (self.Frame.elapsed or 0) + delta
-        if self.Frame.elapsed >= 0.05 then
+        if self.Frame.elapsed >= 0.01 then
             self.Frame.elapsed = 0
             self:UpdateDisplay()
         end
@@ -210,7 +210,7 @@ function BarMixin:DisableFasterUpdates()
     self.fasterUpdates = false
     self.Frame:SetScript("OnUpdate", function(_, delta)
         self.Frame.elapsed = (self.Frame.elapsed or 0) + delta
-        if self.Frame.elapsed >= 0.25 then
+        if self.Frame.elapsed >= 0.1 then
             self.Frame.elapsed = 0
             self:UpdateDisplay()
         end
