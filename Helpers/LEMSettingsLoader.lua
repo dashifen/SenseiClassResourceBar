@@ -386,6 +386,7 @@ local function BuildLemSettings(bar, defaults)
             kind = LEM.SettingType.Dropdown,
             default = defaults.font,
             useOldStyle = true,
+            height = 200,
             generator = function(dropdown, rootDescription, settingObject)
                 dropdown.fontPool = {}
 
@@ -408,11 +409,6 @@ local function BuildLemSettings(bar, defaults)
                     table.insert(sortedFonts, fontName)
                 end
                 table.sort(sortedFonts)
-
-                local maxVisibleItems = 25
-                local itemHeight = 20
-                local maxScrollExtent = maxVisibleItems * itemHeight
-                rootDescription:SetScrollMode(maxScrollExtent)
 
                 for index, fontName in ipairs(sortedFonts) do
                     local fontPath = fonts[fontName]
@@ -520,6 +516,7 @@ local function BuildLemSettings(bar, defaults)
             kind = LEM.SettingType.Dropdown,
             default = defaults.backgroundStyle,
             useOldStyle = true,
+            height = 200,
             generator = function(dropdown, rootDescription, settingObject)
                 dropdown.texturePool = {}
 
@@ -544,11 +541,6 @@ local function BuildLemSettings(bar, defaults)
                     table.insert(sortedTextures, textureName)
                 end
                 table.sort(sortedTextures)
-
-                local maxVisibleItems = 25
-                local itemHeight = 20
-                local maxScrollExtent = maxVisibleItems * itemHeight
-                rootDescription:SetScrollMode(maxScrollExtent)
 
                 for index, textureName in ipairs(sortedTextures) do
                     local texturePath = textures[textureName]
@@ -591,6 +583,7 @@ local function BuildLemSettings(bar, defaults)
             kind = LEM.SettingType.Dropdown,
             default = defaults.foregroundStyle,
             useOldStyle = true,
+            height = 200,
             generator = function(dropdown, rootDescription, settingObject)
                 dropdown.texturePool = {}
 
@@ -615,11 +608,6 @@ local function BuildLemSettings(bar, defaults)
                     table.insert(sortedTextures, textureName)
                 end
                 table.sort(sortedTextures)
-
-                local maxVisibleItems = 25
-                local itemHeight = 20
-                local maxScrollExtent = maxVisibleItems * itemHeight
-                rootDescription:SetScrollMode(maxScrollExtent)
 
                 for index, textureName in ipairs(sortedTextures) do
                     local texturePath = textures[textureName]
