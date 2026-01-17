@@ -325,6 +325,12 @@ function BarMixin:ApplyVisibilitySettings(layoutName, inCombat)
         return
     end
 
+    -- Always hide in Pet Battles
+    if C_PetBattles.IsInBattle() then
+        self:Hide()
+        return
+    end
+
     if data.barVisible == "Always Visible" then
         self:Show()
     elseif data.barVisible == "Hidden" then
