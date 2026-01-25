@@ -843,7 +843,7 @@ function BarMixin:UpdateTicksLayout(layoutName)
     elseif resource == "TIP_OF_THE_SPEAR" then
         max = addonTable.TipOfTheSpear.TIP_MAX_STACKS
     elseif type(resource) == "number" then
-        UnitPowerMax("player", resource)
+        max = UnitPowerMax("player", resource)
     end
 
     local defaults = self.defaults or {}
