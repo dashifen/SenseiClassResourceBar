@@ -231,12 +231,16 @@ local function BuildLemSettings(bar, defaults)
             useOldStyle = true,
             values = addonTable.availableCustomFrames,
             get = function(layoutName)
-                return (SenseiClassResourceBarDB[config.dbName][layoutName] and SenseiClassResourceBarDB[config.dbName][layoutName].customFrame) or nil
+                return (SenseiClassResourceBarDB[config.dbName][layoutName] and SenseiClassResourceBarDB[config.dbName][layoutName].customFrameName) or nil
             end,
             set = function(layoutName, value)
-                SenseiClassResourceBarDB[config.dbName][layoutName] = SenseiClassResourceBarDB[config.dbName][layoutName] or CopyTable(defaults)
-                SenseiClassResourceBarDB[config.dbName][layoutName].customFrame = value
-                bar:ApplyLayout(layoutName)
+                local _, customFrame = strsplit(" ", value)
+                if customFrame and _G[customFrame] then
+                    SenseiClassResourceBarDB[config.dbName][layoutName] = SenseiClassResourceBarDB[config.dbName][layoutName] or CopyTable(defaults)
+                    SenseiClassResourceBarDB[config.dbName][layoutName].customFrame = customFrame
+                    SenseiClassResourceBarDB[config.dbName][layoutName].customFrameName = value
+                    bar:ApplyLayout(layoutName)
+                end
             end,
             isEnabled = function (layoutName)
                 local data = SenseiClassResourceBarDB[config.dbName][layoutName]

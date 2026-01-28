@@ -850,11 +850,12 @@ function BarMixin:GetCustomFrameWidth(layoutName)
     local data = self:GetData(layoutName)
     if not data or not data.customFrame then return nil end
 
-    local _, customFrame = strsplit(" ", data.customFrame)
-    if not customFrame or not _G[customFrame] then return end
-    customFrame = _G[customFrame]
+    local v = _G[data.customFrame]
+    if v then
+        return v:IsShown() and v:GetWidth() or nil
+    end
 
-    return customFrame:IsShown() and customFrame:GetWidth() or nil
+    return nil
 end
 
 function BarMixin:ApplyBackgroundSettings(layoutName, data)
