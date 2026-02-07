@@ -57,6 +57,18 @@ local function HasNearbyHostileAoE(spellID)
         return false
     end
 
+    local spellRange = {
+        [190411] = function(unit)
+            return CheckInteractDistance(unit, 2) -- ~11 yards
+        end,
+        [6343]   = function(unit)
+            return CheckInteractDistance(unit, 2) or (HasCracklingThunderTalent() and CheckInteractDistance(unit, 5))
+        end,
+        [435222] = function(unit)
+            return CheckInteractDistance(unit, 2) or (HasCracklingThunderTalent() and CheckInteractDistance(unit, 5))
+        end,
+    }
+
     -- check nameplates directly (AoE around player)
     if CheckInteractDistance then
         for i = 1, 40 do
@@ -64,10 +76,7 @@ local function HasNearbyHostileAoE(spellID)
             if UnitExists(unit)
                 and UnitCanAttack("player", unit)
                 and not UnitIsDead(unit)
-                and (
-                    CheckInteractDistance(unit, 2) -- ~11 yards
-                    or (HasCracklingThunderTalent() and CheckInteractDistance(unit, 5)) -- wider when Crackling Thunder
-                )
+                and (spellRange[spellID] and spellRange[spellID](unit) or false)
             then
                 return true
             end
@@ -123,7 +132,7 @@ function Whirlwind:OnEvent(powerBar, event, ...)
 
     -- Unhinged “no-consume window” Very important
     if HasUnhingedTalent() and (
-            spellID == 50622
+        spellID == 50622
         or spellID == 46924
         or spellID == 227847
         or spellID == 184362
