@@ -184,6 +184,10 @@ function HealthBarMixin:ApplyVisibilitySettings(layoutName)
 end
 
 function HealthBarMixin:HideBlizzardPlayerContainer(layoutName, data)
+    -- MSUF compatibility
+    if C_AddOns.IsAddOnLoaded("MidnightSimpleUnitFrames") then return end
+    if InCombatLockdown() then return end
+
     data = data or self:GetData(layoutName)
     if not data then return end
 
