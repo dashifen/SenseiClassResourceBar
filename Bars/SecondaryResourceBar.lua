@@ -23,7 +23,7 @@ end
 
 function SecondaryResourceBarMixin:GetResource()
     local playerClass = select(2, UnitClass("player"))
-    local secondaryResources = {
+    self._resourceTable = self._resourceTable or {
         ["DEATHKNIGHT"] = Enum.PowerType.Runes,
         ["DEMONHUNTER"] = {
             [581] = "SOUL_FRAGMENTS_VENGEANCE", -- Vengeance
@@ -66,7 +66,7 @@ function SecondaryResourceBarMixin:GetResource()
     local spec = C_SpecializationInfo.GetSpecialization()
     local specID = C_SpecializationInfo.GetSpecializationInfo(spec)
 
-    local resource = secondaryResources[playerClass]
+    local resource = self._resourceTable[playerClass]
 
     -- Druid: form-based
     if playerClass == "DRUID" then
