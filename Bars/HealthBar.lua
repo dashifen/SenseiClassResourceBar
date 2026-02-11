@@ -237,9 +237,28 @@ function HealthBarMixin:RegisterSecureVisibility()
         table.insert(conditions, "hide")
     end
 
-    -- Hide while mounted or in vehicle
+    -- Hide while mounted or in vehicle (or druid travel/mount form)
     if data.hideWhileMountedOrVehicule then
-        table.insert(conditions, "[mounted][vehicleui][possessbar][overridebar][flying] hide")
+        local playerClass = select(2, UnitClass("player"))
+        local hideForms = {}
+        if playerClass == "DRUID" then
+            local TRAVEL_FORM = 783
+            local MOUNT_FORM  = 210053
+
+            for i = 1, GetNumShapeshiftForms() do
+                local spellID = select(4, GetShapeshiftFormInfo(i))
+                if spellID == TRAVEL_FORM or spellID == MOUNT_FORM then
+                    table.insert(hideForms, "[form:" .. i .. "]")
+                end
+            end
+        end
+
+        local conditionString = "[mounted][vehicleui][possessbar][overridebar]"
+        if #hideForms > 0 then
+            conditionString = conditionString .. table.concat(hideForms)
+        end
+
+        table.insert(conditions, conditionString .. " hide")
     end
 
     local setting = data.barVisible
@@ -497,7 +516,7 @@ addonTable.RegisteredBar.HealthBar = {
                     SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
                     SenseiClassResourceBarDB[dbName][layoutName].hideBlizzardPlayerContainerUi = value
                     bar:HideBlizzardPlayerContainer(layoutName)
-                    
+
                     StaticPopup_Show("SCRB_RELOADUI")
                 end,
                 tooltip = L["HIDE_BLIZZARD_UI_HEALTH_BAR_TOOLTIP"],
