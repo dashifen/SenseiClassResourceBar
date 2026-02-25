@@ -1,5 +1,12 @@
 local _, addonTable = ...
 
+if UnitClass("player") == "HUNTER" then
+    self:RegisterUnitEvent("UNIT_HEALTH", "pet")
+    self:RegisterUnitEvent("UNIT_MAXHEALTH", "pet")
+    self:RegisterUnitEvent("UNIT_CONNECTION", "pet")
+    self:RegisterEvent("UNIT_PET") -- To detect when a pet is summoned/dismissed
+end
+
 local LEM = addonTable.LEM or LibStub("LibEQOLEditMode-1.0")
 local L = addonTable.L
 
@@ -36,6 +43,11 @@ function TertiaryResourceBarMixin:GetResource()
         resource = resource and resource[formID or 0]
     end
 
+    -- Hunter: pet-heath
+    if playerClass == "HUNTER" then
+        resource = "PET_HEALTH"
+    end
+
     if type(resource) == "table" then
         return resource[specID]
     else
@@ -51,8 +63,10 @@ function TertiaryResourceBarMixin:GetResourceValue(resource)
     if resource == "EBON_MIGHT" then
         local auraData = C_UnitAuras.GetPlayerAuraBySpellID(395296) -- Ebon Might
         local current = auraData and (auraData.expirationTime - GetTime()) or 0
-        local max = 20
-
+        return 20, current
+    elseif resource == "PET_HEALTH" then
+        local current = UnitHealth("pet")
+        local max = UnitHealthMax("pet")
         return max, current
     end
 
@@ -91,11 +105,11 @@ addonTable.RegisteredBar.TertiaryResourceBar = {
     allowEditPredicate = function()
         local spec = C_SpecializationInfo.GetSpecialization()
         local specID = C_SpecializationInfo.GetSpecializationInfo(spec)
-        return specID == 1473 -- Augmentation
+        return specID == 1473 or select(2, UnitClass("player")) == "HUNTER"
     end,
     loadPredicate = function()
         local playerClass = select(2, UnitClass("player"))
-        return playerClass == "EVOKER"
+        return playerClass == "EVOKER" or playerClass == "HUNTER"
     end,
     lemSettings = function(bar, defaults)
         local dbName = bar:GetConfig().dbName

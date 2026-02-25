@@ -120,7 +120,7 @@ function addonTable:GetResourceColor(resource)
         color = { r = 0, g = 0.5, b = 1 }
     elseif resource == "MAELSTROM_WEAPON_ABOVE_5" then
         color = { r = 1, g = 0.5, b = 0 }
-    elseif resource == "TIP_OF_THE_SPEAR" then
+    elseif resource == "TIP_OF_THE_SPEAR" or resource == "PET_HEALTH" then
         color = { r = 0.6, g = 0.8, b = 0.2 }
     elseif resource == "WHIRLWIND" then
         color = { r = 0.2, b = 0.8, g = 0.2 }
