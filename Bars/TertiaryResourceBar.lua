@@ -14,12 +14,10 @@ local TertiaryResourceBarMixin = Mixin({}, addonTable.PowerBarMixin)
 
 function TertiaryResourceBarMixin:OnLoad()
     addonTable.PowerBarMixin.OnLoad(self)
-    addonTable.Freeze:OnLoad(self)
 end
 
 function TertiaryResourceBarMixin:OnEvent(event, ...)
     addonTable.PowerBarMixin.OnEvent(self, event, ...)
-    addonTable.Freeze:OnEvent(self, event, ...)
 end
 
 function TertiaryResourceBarMixin:GetResource()
@@ -32,9 +30,7 @@ function TertiaryResourceBarMixin:GetResource()
             [1473] = "EBON_MIGHT", -- Augmentation
         },
         ["HUNTER"]      = nil,
-        ["MAGE"]        = {
-            [64] = "FREEZE", -- Frost
-        },
+        ["MAGE"]        = nil,
         ["MONK"]        = nil,
         ["PALADIN"]     = nil,
         ["PRIEST"]      = nil,
@@ -80,10 +76,6 @@ function TertiaryResourceBarMixin:GetResourceValue(resource)
         local current = UnitHealth("pet")
         local max = UnitHealthMax("pet")
         return max, current
-    end
-
-    if resource == "FREEZE" then
-        return addonTable.Freeze:GetStacks()
     end
 
     local current = UnitPower("player", resource)
